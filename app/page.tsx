@@ -1,0 +1,263 @@
+import Link from "next/link";
+
+const ABOUT_PHOTO = {
+  src: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=1200&auto=format&fit=crop",
+  alt: "Clinician reviewing digitized patient records on a tablet",
+  caption:
+    "About this photo: a clinician reviewing digitized records on a tablet — illustrative of MEDCARE's evidence-first timeline. Stock photo via Unsplash (National Cancer Institute / Oliver Thomas style medical imagery).",
+};
+
+const GALLERY = [
+  {
+    src: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=800&auto=format&fit=crop",
+    alt: "Doctor consulting patient in clinic",
+    title: "Patient journey",
+    desc: "Visits, labs, meds and hospital stays in one timeline.",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1551190822-a9333d879b1f?q=80&w=800&auto=format&fit=crop",
+    alt: "Medication bottles and prescriptions",
+    title: "Medication clarity",
+    desc: "Dosage conflicts surfaced, never silently resolved.",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?q=80&w=800&auto=format&fit=crop",
+    alt: "Clinician reviewing medical documents",
+    title: "Evidence always attached",
+    desc: "Every fact cites document, page and exact quote.",
+  },
+];
+
+const STEPS = [
+  {
+    n: "1",
+    title: "Upload records",
+    desc: "PDFs and scans are stored immutably with SHA-256 deduplication.",
+  },
+  {
+    n: "2",
+    title: "AI extracts evidence",
+    desc: "Classify + extract with faithful date precision and exact quotes.",
+  },
+  {
+    n: "3",
+    title: "Timeline + conflicts",
+    desc: "Episodes, gaps and dosage conflicts surface for review.",
+  },
+  {
+    n: "4",
+    title: "Share safely",
+    desc: "Expiring scoped shares, audited break-glass, grounded Q&A.",
+  },
+];
+
+const features = [
+  {
+    icon: "⬡",
+    title: "Evidence-first",
+    desc: "Every fact links to document + page + exact quote. Zero fabrication.",
+    color: "text-clinical-400",
+  },
+  {
+    icon: "⬡",
+    title: "Controlled sharing",
+    desc: "Authenticated, expiring, revocable, scoped, fully audited access.",
+    color: "text-violet-400",
+  },
+  {
+    icon: "⬡",
+    title: "Decision support only",
+    desc: "AI-organized from your records — never diagnosis or medical advice.",
+    color: "text-amber-400",
+  },
+];
+
+export default function Landing() {
+  return (
+    <main className="relative min-h-screen overflow-hidden">
+      {/* Background orbs */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-clinical-500/10 blur-[120px]" />
+        <div className="absolute top-1/2 -right-40 h-[400px] w-[400px] rounded-full bg-violet-500/8 blur-[100px]" />
+      </div>
+
+      <div className="relative mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-20">
+        {/* Badge */}
+        <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-clinical-500/30 bg-clinical-500/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest text-clinical-400 sm:px-4 sm:text-xs">
+          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-clinical-400 animate-pulse-slow" />
+          <span className="truncate">MEDCARE · HE-05</span>
+        </div>
+
+        {/* Hero */}
+        <h1 className="mt-5 max-w-3xl text-4xl font-black leading-[1.1] tracking-tight text-white sm:mt-6 sm:text-5xl md:text-7xl md:leading-[1.08]">
+          Turn fragmented{" "}
+          <span className="bg-gradient-to-r from-clinical-400 to-clinical-300 bg-clip-text text-transparent">
+            medical records
+          </span>{" "}
+          into one patient journey.
+        </h1>
+        <p className="mt-5 max-w-xl text-base text-slate-400 leading-relaxed sm:text-lg">
+          Evidence-backed timeline · 30-second doctor cockpit · patient-controlled sharing · audited break-glass access.
+        </p>
+
+        {/* CTAs */}
+        <div className="mt-8 grid grid-cols-1 gap-3 sm:flex sm:flex-wrap">
+          <Link href="/signup" className="btn-primary justify-center px-7 py-3 text-center text-base">
+            Get Started
+          </Link>
+          <Link href="/signin?demo=patient" className="btn-ghost justify-center px-7 py-3 text-center text-base">
+            Patient Demo
+          </Link>
+          <Link href="/signin?demo=doctor" className="btn-ghost justify-center px-7 py-3 text-center text-base">
+            Doctor Portal
+          </Link>
+        </div>
+
+        {/* Demo hint */}
+        <p className="mt-4 break-words text-xs leading-relaxed text-slate-600">
+          Demo: patient@demo.medcare · doctor@demo.medcare · password demo1234
+        </p>
+
+        {/* Feature cards */}
+        <div className="mt-12 grid gap-4 sm:mt-16 sm:grid-cols-2 lg:grid-cols-3">
+          {features.map(({ icon, title, desc, color }) => (
+            <div key={title} className="glass-card p-5 sm:p-6 animate-fade-in">
+              <span className={`text-2xl ${color}`}>{icon}</span>
+              <p className="mt-3 font-bold text-white">{title}</p>
+              <p className="mt-1.5 text-sm text-slate-400 leading-relaxed">{desc}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Pictures gallery */}
+        <section className="mt-12 sm:mt-16">
+          <h2 className="text-xl font-extrabold tracking-tight text-white sm:text-2xl md:text-3xl">
+            See MEDSCOPE-AI in action
+          </h2>
+          <p className="mt-2 max-w-xl text-sm text-slate-400">
+            Illustrative stock photos showing how records become a clear
+            patient journey.
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {GALLERY.map((g) => (
+              <figure key={g.title} className="glass overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={g.src}
+                  alt={g.alt}
+                  className="h-40 w-full object-cover sm:h-48"
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                />
+                <figcaption className="px-4 py-3 sm:px-5 sm:py-4">
+                  <p className="font-bold text-white">{g.title}</p>
+                  <p className="mt-1 text-sm text-slate-400">{g.desc}</p>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+
+        {/* About-this-photo section */}
+        <section className="mt-12 grid items-center gap-6 sm:mt-16 sm:gap-8 md:grid-cols-2">
+          <figure className="glass overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={ABOUT_PHOTO.src}
+              alt={ABOUT_PHOTO.alt}
+              className="h-52 w-full object-cover sm:h-64 md:h-80"
+              loading="lazy"
+              referrerPolicy="no-referrer"
+            />
+            <figcaption className="break-words border-t border-white/10 px-4 py-3 text-xs leading-relaxed text-slate-400 sm:px-5">
+              {ABOUT_PHOTO.caption}
+            </figcaption>
+          </figure>
+          <div>
+            <h2 className="text-xl font-extrabold tracking-tight text-white sm:text-2xl md:text-3xl">
+              Built around evidence, designed for care.
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-slate-400">
+              MEDCARE turns fragmented uploads into one traceable patient
+              journey: every event cites its source document, page, and exact
+              quote — with faithful date precision, conflict detection, and
+              patient-controlled sharing.
+            </p>
+            <p className="mt-3 text-sm leading-relaxed text-slate-400">
+              Decision support only — never diagnosis or medical advice.
+              Synthetic demo data.
+            </p>
+          </div>
+        </section>
+
+        {/* Stats strip */}
+        <div className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4">
+          {[["15", "Documents"], ["19", "Events"], ["6", "Doc types"], ["1", "Conflict detected"]].map(([v, l]) => (
+            <div key={l} className="glass-sm p-4 text-center">
+              <p className="text-2xl font-black text-white">{v}</p>
+              <p className="text-xs text-slate-500 mt-0.5">{l}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* How it works */}
+        <section className="mt-12 sm:mt-16">
+          <h2 className="text-xl font-extrabold tracking-tight text-white sm:text-2xl md:text-3xl">
+            How MEDSCOPE-AI works
+          </h2>
+          <p className="mt-2 max-w-xl text-sm text-slate-400">
+            From fragmented uploads to one traceable, shareable patient journey.
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {STEPS.map((s) => (
+              <div key={s.n} className="glass-card p-5 sm:p-6">
+                <p className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-clinical-500/20 text-sm font-black text-clinical-300">
+                  {s.n}
+                </p>
+                <p className="mt-3 font-bold text-white">{s.title}</p>
+                <p className="mt-1.5 text-sm text-slate-400 leading-relaxed">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Safety + FAQ */}
+        <section className="mt-12 grid gap-4 sm:mt-16 md:grid-cols-2">
+          <div className="glass p-5 sm:p-6">
+            <p className="font-bold text-white">Safe by design</p>
+            <ul className="mt-3 space-y-2 text-sm text-slate-400">
+              <li>Every fact links to document + page + exact quote.</li>
+              <li>Conflicts are shown, never silently resolved.</li>
+              <li>Sharing is expiring, scoped, revocable and audited.</li>
+              <li>Emergency access needs reason + OTP and is time-boxed.</li>
+            </ul>
+          </div>
+          <div className="glass p-5 sm:p-6">
+            <p className="font-bold text-white">FAQ</p>
+            <div className="mt-3 space-y-3 text-sm leading-relaxed text-slate-400">
+              <p><span className="font-semibold text-slate-200">Is this medical advice? </span>No — decision support only, organized from your records.</p>
+              <p><span className="font-semibold text-slate-200">Is my data real? </span>No — this demo uses synthetic records only.</p>
+              <p><span className="font-semibold text-slate-200">Who can see my data? </span>Only you, plus doctors you share with or audited emergency access.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Bottom CTA */}
+        <section className="glass mt-12 flex flex-col items-stretch gap-4 p-5 sm:mt-16 sm:p-8 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-lg font-extrabold text-white sm:text-xl">Ready to see your journey clearly?</p>
+            <p className="mt-1 text-sm text-slate-400">Try the patient demo or open the doctor cockpit.</p>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:flex sm:flex-wrap">
+            <Link href="/signin?demo=patient" className="btn-primary justify-center text-center">Patient Demo</Link>
+            <Link href="/signin?demo=doctor" className="btn-ghost justify-center text-center">Doctor Portal</Link>
+          </div>
+        </section>
+
+        <p className="mt-12 text-xs text-slate-600">
+          MEDCARE uses controlled, authenticated, auditable access. Synthetic demo data only.
+        </p>
+      </div>
+    </main>
+  );
+}

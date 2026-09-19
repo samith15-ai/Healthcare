@@ -1,0 +1,19 @@
+{
+  "css.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
+  "less.lint.unknownAtRules": "ignore",
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "tailwindCSS.experimental.classRegex": [],
+  "css.validate": true,
+  // vercel.json references Vercel's official schema via "$schema":
+  //   "https://openapi.vercel.sh/vercel.json"
+  // That host is not part of VS Code's default json.schemaDownload.trustedDomains,
+  // which produced: "[json] Unable to load schema from
+  // 'https://openapi.vercel.sh/vercel.json': Location ... is untrusted."
+  // Allowlisting the host keeps completions/validation for vercel.json and clears the warning.
+  "json.schemaDownload.trustedDomains": {
+    "https://openapi.vercel.sh/": true
+  }
+}
