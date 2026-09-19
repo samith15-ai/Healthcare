@@ -13,8 +13,39 @@ export async function POST(req: Request) {
   if (!body.success) return NextResponse.json({ error: "Invalid input. Password must be at least 6 characters." }, { status: 400 });
   const { email, password, fullName, role } = body.data;
 
+  if (!process.env.DATABASE_URL) {
+    return NextResponse.json({
+      error: "DATABASE_URL is not set in environment variables. Please add DATABASE_URL in your hosting environment settings (e.g. Vercel Project Settings > Environment Variables).",
+    }, { status: 500 });
+  }
+
+  if (
+    process.env.NODE_ENV === "production" &&
+    (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) &&
+    (process.env.DATABASE_URL.includes("localhost") || process.env.DATABASE_URL.includes("127.0.0.1"))
+  ) {
+    return NextResponse.json({
+      error: "DATABASE_URL is set to localhost in production. Cloud deployments require a remote hosted PostgreSQL database (e.g., Neon, Supabase, Railway).",
+    }, { status: 500 });
+  }
+
   try {
-    const existing = await prisma.user.findUnique({ where: { email } });
+    let existing = null;
+    try {
+      existing = await prisma.user.findUnique({ where: { email } });
+    } catch (queryErr: unknown) {
+      const msg = queryErr instanceof Error ? queryErr.message : String(queryErr);
+      const code = (queryErr as { code?: string })?.code;
+      if (code === "P2021" || msg.includes("does not exist") || msg.includes("relation")) {
+        console.log("Database schema missing on signup. Auto-creating schema tables...");
+        const { ensureDatabaseSchema } = await import("@/lib/seed");
+        await ensureDatabaseSchema(prisma);
+        existing = await prisma.user.findUnique({ where: { email } }).catch(() => null);
+      } else {
+        throw queryErr;
+      }
+    }
+
     if (existing) return NextResponse.json({ error: "Email already in use" }, { status: 409 });
     const user = await prisma.user.create({ data: { email, passwordHash: hash(password), role } });
     if (role === "PATIENT") await prisma.patientProfile.create({ data: { userId: user.id, fullName } });
@@ -26,19 +57,9 @@ export async function POST(req: Request) {
   } catch (e: unknown) {
     console.error("Signup server error:", e);
     const msg = e instanceof Error ? e.message : String(e);
-    const code = (e as { code?: string })?.code;
-    if (code === "P2021" || msg.includes("does not exist") || msg.includes("relation")) {
-      return NextResponse.json({
-        error: "Database schema not migrated. Please run prisma migrate deploy on your database.",
-      }, { status: 500 });
-    }
-    if (msg.includes("reach database server") || msg.includes("connect") || msg.includes("ECONNREFUSED")) {
-      return NextResponse.json({
-        error: "Database connection failed. Please check DATABASE_URL in your deployment settings.",
-      }, { status: 500 });
-    }
+    const cleanMsg = msg.split("\n").filter(Boolean).pop() || msg;
     return NextResponse.json({
-      error: "Signup failed due to a server error. Please try again.",
+      error: `Database connection error: ${cleanMsg}`,
     }, { status: 500 });
   }
 }
