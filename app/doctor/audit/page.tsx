@@ -1,10 +1,31 @@
 import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/PageHeader";
 import { cookies } from "next/headers";
+import { getBaseUrl } from "@/lib/api-helpers";
+import { prisma } from "@/lib/db";
+
 export default async function Audit() {
-  const base = process.env.APP_URL ?? "http://localhost:3000";
-  const logs: { id: string; actorRole?: string; action: string; targetType?: string; targetId?: string; accessType?: string; result: string; createdAt: string }[] =
+  const base = getBaseUrl();
+  let logs: { id: string; actorRole?: string; action: string; targetType?: string; targetId?: string; accessType?: string; result: string; createdAt: string }[] =
     await fetch(`${base}/api/audit`, { headers: { cookie: cookies().toString() }, cache: "no-store" }).then((r) => r.json()).then((j) => j.logs ?? []).catch(() => []);
+
+  if (logs.length === 0) {
+    try {
+      const rows = await prisma.auditLog.findMany({ orderBy: { createdAt: "desc" }, take: 100 });
+      logs = rows.map((r) => ({
+        id: r.id,
+        actorRole: r.actorRole ?? undefined,
+        action: r.action,
+        targetType: r.targetType ?? undefined,
+        targetId: r.targetId ?? undefined,
+        accessType: r.accessType ?? undefined,
+        result: r.result,
+        createdAt: r.createdAt.toISOString(),
+      }));
+    } catch {
+      // Fallback silent catch
+    }
+  }
   return (
     <AppShell role="DOCTOR">
       <PageHeader title="Audit History" subtitle="LOGIN · SHARE · DOCUMENT VIEW/DOWNLOAD · REVOKE · EMERGENCY ACCESS · TIMELINE VIEW · PATIENT ACCESS — actor, role, action, target, time, access type, result." />

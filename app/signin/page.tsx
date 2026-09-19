@@ -22,10 +22,37 @@ function SignInForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      if (!res.ok) { setErr("Invalid credentials"); return; }
-      const j = await res.json();
-      r.push(j.role === "DOCTOR" ? "/doctor/dashboard" : "/patient/overview");
-    } finally { setLoading(false); }
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setErr(j.error || "Invalid credentials");
+        return;
+      }
+      const destination = j.role === "DOCTOR" ? "/doctor/dashboard" : "/patient/overview";
+      window.location.href = destination;
+    } catch (e) {
+      console.error("Sign in error:", e);
+      setErr("Failed to reach server. Please check your connection.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function initializeDemo() {
+    setLoading(true);
+    setErr("");
+    try {
+      const res = await fetch("/api/seed", { method: "POST" });
+      const j = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setErr("Demo database initialized! You can now sign in.");
+      } else {
+        setErr(j.error || "Failed to initialize demo data.");
+      }
+    } catch {
+      setErr("Failed to initialize demo data. Check database connection.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -68,9 +95,18 @@ function SignInForm() {
               />
             </div>
             {err && (
-              <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-400">
-                {err}
-              </p>
+              <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+                <p>{err}</p>
+                {(err.includes("not seeded") || err.includes("empty") || err.includes("not created")) && (
+                  <button
+                    type="button"
+                    onClick={initializeDemo}
+                    className="mt-2 text-xs font-semibold text-clinical-400 underline hover:text-clinical-300 block"
+                  >
+                    Click here to seed demo fixtures
+                  </button>
+                )}
+              </div>
             )}
             <button
               type="submit"
@@ -85,12 +121,14 @@ function SignInForm() {
             <p className="text-xs text-slate-600 mb-2">Quick demo access:</p>
             <div className="flex gap-2">
               <button
+                type="button"
                 onClick={() => { setEmail("patient@demo.medcare"); setPassword("demo1234"); }}
                 className="flex-1 rounded-lg border border-white/8 bg-white/4 py-1.5 text-xs font-medium text-slate-400 hover:bg-white/8 transition-colors"
               >
                 Patient
               </button>
               <button
+                type="button"
                 onClick={() => { setEmail("doctor@demo.medcare"); setPassword("demo1234"); }}
                 className="flex-1 rounded-lg border border-white/8 bg-white/4 py-1.5 text-xs font-medium text-slate-400 hover:bg-white/8 transition-colors"
               >

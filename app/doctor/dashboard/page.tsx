@@ -4,6 +4,8 @@ import { MetricCard } from "@/components/MetricCard";
 import { DISCLAIMER } from "@/lib/enums";
 import { cookies } from "next/headers";
 import Link from "next/link";
+import { getBaseUrl } from "@/lib/api-helpers";
+import { prisma } from "@/lib/db";
 
 const TYPE_ICONS: Record<string, string> = {
   DIAGNOSIS: "◈", MEDICATION: "◈", LAB: "◈", PROCEDURE: "◈",
@@ -11,13 +13,24 @@ const TYPE_ICONS: Record<string, string> = {
 };
 
 export default async function Dashboard({ searchParams }: { searchParams: { patientId?: string } }) {
-  const base = process.env.APP_URL ?? "http://localhost:3000";
+  const base = getBaseUrl();
   const cookie = cookies().toString();
   const pid = searchParams.patientId ?? "";
-  const t = pid
+  let t = pid
     ? await fetch(`${base}/api/events?patientId=${pid}`, { headers: { cookie }, cache: "no-store" })
         .then((r) => r.ok ? r.json() : null).catch(() => null)
     : null;
+
+  if (pid && !t) {
+    try {
+      const { TimelineService } = await import("@/services/TimelineService");
+      const events = await TimelineService.getTimeline(pid);
+      const conflicts = await prisma.conflict.findMany({ where: { patientId: pid } });
+      t = { events, conflicts };
+    } catch {
+      // Fallback silent catch
+    }
+  }
 
   const events: { id: string; title: string; eventType: string; evidenceStatus: string }[] = t?.events ?? [];
   const conds = events.filter((e) => e.eventType === "DIAGNOSIS").slice(0, 5);

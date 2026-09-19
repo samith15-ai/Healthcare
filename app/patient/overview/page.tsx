@@ -6,8 +6,12 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
+import { getBaseUrl } from "@/lib/api-helpers";
+import { getSession, patientIdFor } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+
 async function data() {
-  const base = process.env.APP_URL ?? "http://localhost:3000";
+  const base = getBaseUrl();
   const cookie = cookies().toString();
   const [t, d, s] = await Promise.all([
     fetch(`${base}/api/events`, { headers: { cookie }, cache: "no-store" }).then((r) => r.ok ? r.json() : null).catch(() => null),
@@ -20,7 +24,40 @@ async function data() {
 export default async function Overview() {
   const jar = cookies().get("medcare_session");
   if (!jar) redirect("/signin");
-  const { t, d, s } = await data();
+  let { t, d, s } = await data();
+
+  if (!t) {
+    try {
+      const session = await getSession();
+      const pid = session ? patientIdFor(session as never) : null;
+      if (pid) {
+        const { TimelineService } = await import("@/services/TimelineService");
+        const events = await TimelineService.getTimeline(pid);
+        const conflicts = await prisma.conflict.findMany({ where: { patientId: pid } });
+        const gaps = await prisma.timelineGap.findMany({ where: { patientId: pid } });
+        t = { events, conflicts, gaps };
+
+        if (!d) {
+          const docs = await prisma.document.findMany({ where: { patientId: pid }, orderBy: { uploadedAt: "desc" } });
+          d = { documents: docs };
+        }
+        if (!s) {
+          const snaps = await prisma.patientStateSnapshot.findMany({ where: { patientId: pid }, orderBy: { createdAt: "asc" }, take: 20 });
+          const { SnapshotService } = await import("@/services/SnapshotService");
+          let diff: unknown = null;
+          if (snaps.length >= 2) {
+            const a = snaps[snaps.length - 2].data as Record<string, { id: string; title: string }[]>;
+            const b = snaps[snaps.length - 1].data as Record<string, { id: string; title: string }[]>;
+            diff = SnapshotService.diff(a, b);
+          }
+          s = { snapshots: snaps, whatChanged: diff };
+        }
+      }
+    } catch (fallbackErr) {
+      console.error("Overview direct query fallback error:", fallbackErr);
+    }
+  }
+
   const events: { id: string; title: string; eventType: string }[] = t?.events ?? [];
   const conflicts: { id: string; title: string }[] = t?.conflicts ?? [];
   const gaps: { id: string; title: string }[] = t?.gaps ?? [];

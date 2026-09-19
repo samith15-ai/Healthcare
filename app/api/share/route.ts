@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { shareCreateSchema } from "@/lib/validation";
 import { ShareService } from "@/services/ShareService";
 import { audit } from "@/lib/audit";
+import { getBaseUrl } from "@/lib/api-helpers";
 export async function POST(req: Request) {
   const session = await getSession();
   if (!session || session.role !== "PATIENT") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -13,7 +14,7 @@ export async function POST(req: Request) {
   if (!patientId) return NextResponse.json({ error: "No patient profile" }, { status: 400 });
   const { token, session: s } = await ShareService.create(patientId, parsed.data);
   await audit({ actorId: session.id, actorRole: session.role, action: "SHARE", targetType: "ShareSession", targetId: s.id, meta: { scopes: parsed.data.scopes } });
-  const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+  const appUrl = getBaseUrl();
   return NextResponse.json({ token, shareUrl: `${appUrl}/share/${token}`, expiresAt: s.expiresAt, id: s.id });
 }
 export async function GET() {

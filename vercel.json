@@ -2,6 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "installCommand": "pnpm install --no-frozen-lockfile",
-  "buildCommand": "prisma generate --schema db/schema.prisma && next build",
+  "buildCommand": "prisma generate --schema db/schema.prisma && (prisma migrate deploy --schema db/schema.prisma || true) && next build",
   "github": { "silent": true }
 }

@@ -1,6 +1,9 @@
 import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/PageHeader";
 import { cookies } from "next/headers";
+import { getBaseUrl } from "@/lib/api-helpers";
+import { getSession, patientIdFor } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 
 const RESULT_STYLES: Record<string, string> = {
   ALLOWED: "tag border border-emerald-500/20 bg-emerald-500/10 text-emerald-300",
@@ -10,12 +13,37 @@ const RESULT_STYLES: Record<string, string> = {
 };
 
 export default async function AccessHistory() {
-  const base = process.env.APP_URL ?? "http://localhost:3000";
-  const logs: {
+  const base = getBaseUrl();
+  let logs: {
     id: string; actorRole?: string; action: string; targetType?: string;
     accessType?: string; result: string; createdAt: string;
   }[] = await fetch(`${base}/api/audit`, { headers: { cookie: cookies().toString() }, cache: "no-store" })
     .then((r) => r.json()).then((j) => j.logs ?? []).catch(() => []);
+
+  if (logs.length === 0) {
+    try {
+      const session = await getSession();
+      const pid = session ? patientIdFor(session as never) : null;
+      if (pid) {
+        const rows = await prisma.auditLog.findMany({
+          where: { OR: [{ targetId: pid }, { actorId: session!.id }] },
+          orderBy: { createdAt: "desc" },
+          take: 100,
+        });
+        logs = rows.map((r) => ({
+          id: r.id,
+          actorRole: r.actorRole ?? undefined,
+          action: r.action,
+          targetType: r.targetType ?? undefined,
+          accessType: r.accessType ?? undefined,
+          result: r.result,
+          createdAt: r.createdAt.toISOString(),
+        }));
+      }
+    } catch {
+      // Fallback silent catch
+    }
+  }
 
   return (
     <AppShell role="PATIENT">
